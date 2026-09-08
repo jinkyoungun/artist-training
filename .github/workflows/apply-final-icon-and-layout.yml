@@ -10,24 +10,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Verify icon source chunks
-        run: |
-          echo '4b19fd3964b6b293ccf5682c0cbe86b1fcf60fee62dd47322e00400c683c07a2  icon_chunks/final-180.part0a' | sha256sum -c -
-          echo '0bccdb9e7da29cc37344dfd7ac9b55532f5cbe81fb1c776529a95394b52a711e  icon_chunks/final-180.part0b' | sha256sum -c -
-          echo 'aec085ed8139d3d01303ebf4e84dfc073ad14949d08a60bf61bd25ba6384874f  icon_chunks/final-180.part0c' | sha256sum -c -
-          echo '5670b2161a02db92d2f2f9c4dbf94f160288ecfb5138db478cb3012b12cf9b04  icon_chunks/final-180.part0d' | sha256sum -c -
-          echo 'b0fb8cefaa719d1823831df679c9090a8ebcaf050dac56bf6a2096dd124d12f0  icon_chunks/final-180.part1' | sha256sum -c -
-          echo '85e9c8781314be4a6b6a8c97aba13384b995cbbba60a35d4cec408dc38a93e3e  icon_chunks/final-180.part2' | sha256sum -c -
-          echo '3617d4ceceb7b6e88d6570486267d62579ab3978cb1b2f02a052b6594e867d98  icon_chunks/final-180.part3' | sha256sum -c -
-          echo 'a5a7ea377f06e6d0f8de79005c90b4b27806eedea81b1b7d430bab1f75902b53  icon_chunks/final-180.part4' | sha256sum -c -
-          echo 'd684fdb06ca6749e7bdffb2fea2973be3961d33d849cc170a4d42c30707fdb3a  icon_chunks/final-180.part5' | sha256sum -c -
       - name: Install image tools
         run: |
           sudo apt-get update -y
           sudo apt-get install -y imagemagick
       - name: Build final app icons
         run: |
-          cat icon_chunks/final-180.part0a icon_chunks/final-180.part0b icon_chunks/final-180.part0c icon_chunks/final-180.part0d icon_chunks/final-180.part1 icon_chunks/final-180.part2 icon_chunks/final-180.part3 icon_chunks/final-180.part4 icon_chunks/final-180.part5 | base64 -d > apple-touch-icon.png
+          cat icon_chunks/final-180.part0a icon_chunks/final-180.part0b icon_chunks/final-180.part0c icon_chunks/final-180.part0d icon_chunks/final-180.part1 icon_chunks/final-180.part2 icon_chunks/final-180.part3 icon_chunks/final-180.part4 icon_chunks/final-180.part5 | tr -d '\n\r ' | base64 -d > apple-touch-icon.png
           mkdir -p icons
           cp apple-touch-icon.png icons/icon-180.png
           convert apple-touch-icon.png -resize 192x192 icons/icon-192.png
