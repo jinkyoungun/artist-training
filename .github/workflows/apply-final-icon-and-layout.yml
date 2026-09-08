@@ -10,13 +10,21 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Verify icon source chunks
+        run: |
+          echo '4a3aee8965edda3bb253b4431f11f31ce1616339344f1057736f43cd9db36b10  icon_chunks/final-180.part0' | sha256sum -c -
+          echo 'b0fb8cefaa719d1823831df679c9090a8ebcaf050dac56bf6a2096dd124d12f0  icon_chunks/final-180.part1' | sha256sum -c -
+          echo '85e9c8781314be4a6b6a8c97aba13384b995cbbba60a35d4cec408dc38a93e3e  icon_chunks/final-180.part2' | sha256sum -c -
+          echo '3617d4ceceb7b6e88d6570486267d62579ab3978cb1b2f02a052b6594e867d98  icon_chunks/final-180.part3' | sha256sum -c -
+          echo 'a5a7ea377f06e6d0f8de79005c90b4b27806eedea81b1b7d430bab1f75902b53  icon_chunks/final-180.part4' | sha256sum -c -
+          echo 'd684fdb06ca6749e7bdffb2fea2973be3961d33d849cc170a4d42c30707fdb3a  icon_chunks/final-180.part5' | sha256sum -c -
       - name: Install image tools
         run: |
           sudo apt-get update -y
           sudo apt-get install -y imagemagick
       - name: Build final app icons
         run: |
-          base64 -d icon-final-180.b64.txt > apple-touch-icon.png
+          cat icon_chunks/final-180.part0 icon_chunks/final-180.part1 icon_chunks/final-180.part2 icon_chunks/final-180.part3 icon_chunks/final-180.part4 icon_chunks/final-180.part5 | base64 -d > apple-touch-icon.png
           mkdir -p icons
           cp apple-touch-icon.png icons/icon-180.png
           convert apple-touch-icon.png -resize 192x192 icons/icon-192.png
@@ -26,9 +34,10 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
           p=Path('index.html')
           s=p.read_text()
-          s=s.replace('<link rel="apple-touch-icon" sizes="120x120" href="./apple-touch-icon.png?v=12" />','<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=13" />')
+          s=re.sub(r'<link rel="apple-touch-icon"[^>]*>', '<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=13" />', s, count=1)
           old='.settings input[type="date"]{width:100%;max-width:100%;min-width:0;display:block;box-sizing:border-box;-webkit-appearance:none;appearance:none;}'
           new='.settings{min-width:0;overflow:hidden}.settings input,.settings select{width:100%;max-width:100%;min-width:0;box-sizing:border-box}.settings input[type="date"]{width:100%;inline-size:100%;max-width:100%;max-inline-size:100%;min-width:0;min-inline-size:0;display:block;box-sizing:border-box;-webkit-appearance:none;appearance:none;font-size:16px;}'
           if old in s:
@@ -38,7 +47,6 @@ jobs:
           p.write_text(s)
           sw=Path('sw.js')
           w=sw.read_text()
-          import re
           w=re.sub(r"const CACHE='artist-training-v[^']+';", "const CACHE='artist-training-v2-8';", w)
           sw.write_text(w)
           PY
