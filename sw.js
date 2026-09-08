@@ -1,5 +1,5 @@
-const CACHE='artist-training-v2';
-const ASSETS=['./','./index.html','./manifest.webmanifest','./icons/icon-180.png','./icons/icon-192.png','./icons/icon-512.png'];
-self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS))));
+const CACHE='artist-training-v2-1';
+const ASSETS=['./','./index.html','./manifest.webmanifest','./progress-addon.css','./progress-addon.js','./icons/icon-180.png','./icons/icon-192.png','./icons/icon-512.png'];
+self.addEventListener('install',e=>e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',e=>e.waitUntil(Promise.all([self.clients.claim(),caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))])));
-self.addEventListener('fetch',e=>e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request))));
+self.addEventListener('fetch',e=>{const u=new URL(e.request.url);if(e.request.mode==='navigate'&&u.pathname.endsWith('/artist-training/')){e.respondWith(fetch(e.request).then(r=>r.text()).then(html=>new Response(html.replace('</head>','<link rel="stylesheet" href="./progress-addon.css"></head>').replace('</body>','<script src="./progress-addon.js"></script></body>'),{headers:{'Content-Type':'text/html; charset=utf-8'}})).catch(()=>caches.match('./index.html')));return}e.respondWith(caches.match(e.request).then(r=>r||fetch(e.request)))});
