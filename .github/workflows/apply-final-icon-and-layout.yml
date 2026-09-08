@@ -10,6 +10,142 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Inspect icon chunk hashes
+
+      - name: Install SVG renderer
         run: |
-          sha256sum icon_chunks/final-180.part0a icon_chunks/final-180.part0b icon_chunks/final-180.part0c icon_chunks/final-180.part0d icon_chunks/final-180.p04 icon_chunks/final-180.p05 icon_chunks/final-180.p06 icon_chunks/final-180.p07 icon_chunks/final-180.p08 icon_chunks/final-180.p09 icon_chunks/final-180.p10 icon_chunks/final-180.p11 icon_chunks/final-180.p12 icon_chunks/final-180.p13 icon_chunks/final-180.p14 icon_chunks/final-180.p15 icon_chunks/final-180.p16 icon_chunks/final-180.p17 icon_chunks/final-180.p18 icon_chunks/final-180.p19 icon_chunks/final-180.p20 icon_chunks/final-180.p21 icon_chunks/final-180.p22
+          sudo apt-get update -y
+          sudo apt-get install -y librsvg2-bin
+
+      - name: Build clean metallic A app icons
+        run: |
+          cat > icon-source.svg <<'SVG'
+          <svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+            <defs>
+              <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#171b20"/>
+                <stop offset="1" stop-color="#090b0e"/>
+              </linearGradient>
+              <radialGradient id="disc" cx="50%" cy="42%" r="62%">
+                <stop offset="0" stop-color="#171b20"/>
+                <stop offset="0.62" stop-color="#0b0e12"/>
+                <stop offset="1" stop-color="#050607"/>
+              </radialGradient>
+              <linearGradient id="metalRing" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#8c5a17"/>
+                <stop offset="0.16" stop-color="#f5cf7b"/>
+                <stop offset="0.34" stop-color="#fff4d0"/>
+                <stop offset="0.52" stop-color="#8e949c"/>
+                <stop offset="0.70" stop-color="#f7f8fb"/>
+                <stop offset="0.84" stop-color="#8f96a0"/>
+                <stop offset="1" stop-color="#c17d24"/>
+              </linearGradient>
+              <linearGradient id="metalA" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0" stop-color="#6c4517"/>
+                <stop offset="0.17" stop-color="#e1a840"/>
+                <stop offset="0.34" stop-color="#fff1bd"/>
+                <stop offset="0.52" stop-color="#a3a9b1"/>
+                <stop offset="0.70" stop-color="#f9fafc"/>
+                <stop offset="0.86" stop-color="#7b8189"/>
+                <stop offset="1" stop-color="#d0953e"/>
+              </linearGradient>
+              <linearGradient id="metalRibbon" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#d08b2b"/>
+                <stop offset="0.22" stop-color="#f7d98f"/>
+                <stop offset="0.50" stop-color="#b9bec5"/>
+                <stop offset="0.73" stop-color="#fbfbfd"/>
+                <stop offset="1" stop-color="#8a5519"/>
+              </linearGradient>
+              <filter id="shadow" x="-40%" y="-40%" width="180%" height="180%">
+                <feDropShadow dx="0" dy="28" stdDeviation="25" flood-color="#000000" flood-opacity="0.62"/>
+              </filter>
+              <filter id="softGlow" x="-80%" y="-80%" width="260%" height="260%">
+                <feGaussianBlur stdDeviation="22"/>
+              </filter>
+            </defs>
+
+            <!-- clean matte background -->
+            <rect width="1024" height="1024" rx="220" fill="url(#bg)"/>
+
+            <!-- restrained warm back glow -->
+            <circle cx="445" cy="470" r="315" fill="#c7872e" opacity="0.10" filter="url(#softGlow)"/>
+
+            <!-- inner emblem disc -->
+            <circle cx="512" cy="500" r="334" fill="url(#disc)" stroke="#242a30" stroke-width="12" filter="url(#shadow)"/>
+
+            <!-- metallic outer ring -->
+            <circle cx="512" cy="500" r="300" fill="none" stroke="#030405" stroke-width="84" opacity="0.55"/>
+            <circle cx="512" cy="500" r="300" fill="none" stroke="url(#metalRing)" stroke-width="62"/>
+            <circle cx="512" cy="500" r="331" fill="none" stroke="#ffffff" stroke-width="5" opacity="0.24"/>
+            <circle cx="512" cy="500" r="269" fill="none" stroke="#000000" stroke-width="6" opacity="0.55"/>
+
+            <!-- stylized metallic A -->
+            <g filter="url(#shadow)">
+              <path d="M315 704 L500 265 L705 710" fill="none" stroke="#08090b" stroke-width="116" stroke-linecap="round" stroke-linejoin="round" opacity="0.70"/>
+              <path d="M315 704 L500 265 L705 710" fill="none" stroke="url(#metalA)" stroke-width="84" stroke-linecap="round" stroke-linejoin="round"/>
+
+              <!-- flowing cross ribbon -->
+              <path d="M286 687 C403 604 558 612 723 487" fill="none" stroke="#070809" stroke-width="103" stroke-linecap="round" opacity="0.65"/>
+              <path d="M286 687 C403 604 558 612 723 487" fill="none" stroke="url(#metalRibbon)" stroke-width="70" stroke-linecap="round"/>
+
+              <!-- upper ribbon crossing the right leg -->
+              <path d="M519 395 C592 429 650 454 711 492" fill="none" stroke="#060708" stroke-width="82" stroke-linecap="round" opacity="0.60"/>
+              <path d="M519 395 C592 429 650 454 711 492" fill="none" stroke="url(#metalRibbon)" stroke-width="53" stroke-linecap="round"/>
+            </g>
+
+            <!-- crisp highlight accents -->
+            <path d="M328 675 L501 286" stroke="#ffffff" stroke-width="10" stroke-linecap="round" opacity="0.40"/>
+            <path d="M515 289 L689 674" stroke="#fff7df" stroke-width="8" stroke-linecap="round" opacity="0.26"/>
+            <path d="M315 670 C430 595 560 597 694 503" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round" opacity="0.24"/>
+          </svg>
+          SVG
+
+          mkdir -p icons
+          rsvg-convert -w 180 -h 180 icon-source.svg -o apple-touch-icon.png
+          cp apple-touch-icon.png icons/icon-180.png
+          rsvg-convert -w 192 -h 192 icon-source.svg -o icons/icon-192.png
+          rsvg-convert -w 512 -h 512 icon-source.svg -o icons/icon-512.png
+          file apple-touch-icon.png icons/icon-180.png icons/icon-192.png icons/icon-512.png
+
+      - name: Patch iPhone layout and cache
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+
+          p = Path('index.html')
+          s = p.read_text()
+
+          s = re.sub(
+              r'<link rel="apple-touch-icon"[^>]*>',
+              '<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=14" />',
+              s,
+              count=1,
+          )
+
+          old = '.settings input[type="date"]{width:100%;max-width:100%;min-width:0;display:block;box-sizing:border-box;-webkit-appearance:none;appearance:none;}'
+          new = '''.settings{min-width:0;overflow:hidden}
+          .settings input,.settings select{display:block;width:100%;max-width:100%;min-width:0;box-sizing:border-box}
+          .settings input[type="date"]{display:block;width:100%;inline-size:100%;max-width:100%;max-inline-size:100%;min-width:0;min-inline-size:0;box-sizing:border-box;overflow:hidden;-webkit-appearance:none;appearance:none;font-size:16px;padding-right:12px}
+          .settings input[type="date"]::-webkit-date-and-time-value{min-width:0;text-align:left}
+          .settings input[type="date"]::-webkit-calendar-picker-indicator{margin-left:auto}'''
+
+          if old in s:
+              s = s.replace(old, new)
+          elif '::-webkit-date-and-time-value' not in s:
+              s = s.replace('</style>', new + '\n</style>')
+
+          p.write_text(s)
+
+          sw = Path('sw.js')
+          w = sw.read_text()
+          w = re.sub(r"const CACHE='artist-training-v[^']+';", "const CACHE='artist-training-v2-9';", w)
+          sw.write_text(w)
+          PY
+
+      - name: Commit final app update
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add icon-source.svg apple-touch-icon.png icons/icon-180.png icons/icon-192.png icons/icon-512.png index.html sw.js
+          git diff --cached --quiet || git commit -m 'Apply clean metallic A icon and fix iPhone date field'
+          git push
