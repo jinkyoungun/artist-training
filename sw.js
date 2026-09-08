@@ -1,5 +1,6 @@
-const CACHE='artist-training-clean-20260908-v1';
-const STATIC=[
+const CACHE='artist-training-final-20260908-1';
+const ASSETS=[
+  './index.html',
   './manifest.webmanifest',
   './progress-addon.css',
   './progress-addon.js',
@@ -8,7 +9,7 @@ const STATIC=[
   './icons/icon-512.png'
 ];
 self.addEventListener('install',event=>{
-  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(STATIC)).then(()=>self.skipWaiting()));
+  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()));
 });
 self.addEventListener('activate',event=>{
   event.waitUntil(Promise.all([
@@ -18,8 +19,16 @@ self.addEventListener('activate',event=>{
 });
 self.addEventListener('fetch',event=>{
   if(event.request.mode==='navigate'){
-    event.respondWith(fetch(event.request,{cache:'no-store'}).catch(()=>caches.match('./index.html')));
+    event.respondWith(
+      fetch(event.request,{cache:'no-store'})
+        .then(response=>{
+          const copy=response.clone();
+          caches.open(CACHE).then(cache=>cache.put('./index.html',copy));
+          return response;
+        })
+        .catch(()=>caches.match('./index.html'))
+    );
     return;
   }
-  event.respondWith(fetch(event.request).catch(()=>caches.match(event.request)));
+  event.respondWith(caches.match(event.request).then(cached=>cached||fetch(event.request)));
 });
