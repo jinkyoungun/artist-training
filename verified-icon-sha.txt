@@ -1,1 +1,0 @@
-Expected local 120px RGB PNG git-blob SHA: f70fdf9e7ccd9867a557fb021d1742de08795a63

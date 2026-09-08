@@ -1,1 +1,0 @@
-RGB truecolor iPhone icon patch prepared.

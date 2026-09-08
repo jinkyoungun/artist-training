@@ -1,1 +1,0 @@
-iPhone icon assets rebuilt as RGB truecolor PNG for Safari home screen compatibility.

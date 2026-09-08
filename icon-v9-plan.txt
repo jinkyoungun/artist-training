@@ -1,1 +1,0 @@
-Use 120x120 RGB apple-touch-icon because current Safari versions may prefer 120px web clip icons.

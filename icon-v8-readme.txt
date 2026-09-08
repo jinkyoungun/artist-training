@@ -1,1 +1,0 @@
-Using a fresh RGB truecolor PNG for iOS home screen icon compatibility.

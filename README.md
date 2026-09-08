@@ -1,3 +1,7 @@
-# 1년 프로 아티스트 훈련
+# Artist Training
 
-iPhone 홈 화면에서 앱처럼 사용할 수 있는 52주 아티스트 훈련 PWA입니다.
+52주 프로 아티스트 훈련 PWA.
+
+- 저장 데이터 키: `proArtist52_v2`
+- 시작일 기본값: 2026-09-14
+- GitHub Pages: main / root
