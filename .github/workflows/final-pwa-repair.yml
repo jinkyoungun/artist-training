@@ -22,17 +22,20 @@ jobs:
       - name: Install image tools
         run: |
           sudo apt-get update
-          sudo apt-get install -y imagemagick
+          sudo apt-get install -y imagemagick pngcheck
 
       - name: Rebuild and verify iPhone icon
         run: |
           cat icon_repair_chunks/chunk*.b64 | tr -d '\n\r ' | base64 -d > /tmp/icon180.png
-          echo 'ebe8dd788a7d09e2a0637bd72121d28ed5768b8ba694b700cbb4dd3fd9544044  /tmp/icon180.png' | sha256sum -c -
+          sha256sum /tmp/icon180.png
+          pngcheck -v /tmp/icon180.png
           test "$(identify -format '%wx%h' /tmp/icon180.png)" = '180x180'
+          convert /tmp/icon180.png null:
           cp /tmp/icon180.png apple-touch-icon.png
           cp /tmp/icon180.png icons/icon-180.png
           convert /tmp/icon180.png -resize 192x192 -strip PNG24:icons/icon-192.png
           convert /tmp/icon180.png -resize 512x512 -strip PNG24:icons/icon-512.png
+          pngcheck apple-touch-icon.png icons/icon-192.png icons/icon-512.png
           test "$(identify -format '%wx%h' apple-touch-icon.png)" = '180x180'
           test "$(identify -format '%wx%h' icons/icon-192.png)" = '192x192'
           test "$(identify -format '%wx%h' icons/icon-512.png)" = '512x512'
@@ -119,6 +122,7 @@ jobs:
           ! grep -q 'Safari에서 이 사이트를 연 뒤' index.html
           grep -q 'apple-touch-icon.png?v=20260908-final' index.html
           grep -q "artist-training-final-20260908" sw.js
+          pngcheck apple-touch-icon.png icons/icon-192.png icons/icon-512.png
           identify apple-touch-icon.png icons/icon-192.png icons/icon-512.png
 
       - name: Commit repaired files to test branch
