@@ -21,22 +21,17 @@ jobs:
       - name: Install image tools
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y imagemagick pngcheck
+          sudo apt-get install -y imagemagick pngcheck python3-pil
 
       - name: Crop white frame and expand dark icon
         run: |
           cp apple-touch-icon.png /tmp/source.png
-          # Remove the connected outer light frame, crop to the actual dark icon,
-          # then scale that icon to the full iOS canvas.
           convert /tmp/source.png \
             -bordercolor white -border 1 \
             -fuzz 14% -trim +repage \
             -resize 180x180! \
             /tmp/cropped.png
 
-          # Any residual light pixels connected to the four corners belong to the
-          # former outer frame. Replace only those connected corner regions with
-          # the icon's charcoal background so no white rim remains.
           convert /tmp/cropped.png \
             -fuzz 22% \
             -fill '#1a1e21' \
