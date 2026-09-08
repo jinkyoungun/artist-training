@@ -1,0 +1,15 @@
+{
+  "id":"./?app=artist-training-v6",
+  "name":"Artist Training · 52주 프로 아티스트 훈련",
+  "short_name":"Artist Training",
+  "start_url":"./?app=artist-training-v6",
+  "scope":"./",
+  "display":"standalone",
+  "background_color":"#0b0d12",
+  "theme_color":"#0b0d12",
+  "orientation":"portrait-primary",
+  "icons":[
+    {"src":"icons/artist-training-192-v6.png","sizes":"192x192","type":"image/png","purpose":"any"},
+    {"src":"icons/artist-training-512-v6.png","sizes":"512x512","type":"image/png","purpose":"any"}
+  ]
+}
