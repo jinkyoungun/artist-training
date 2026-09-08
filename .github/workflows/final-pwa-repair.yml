@@ -1,0 +1,130 @@
+name: Final PWA Repair
+
+on:
+  push:
+    branches: [pwa-final-repair]
+    paths:
+      - 'icon_repair_chunks/**'
+      - '.github/workflows/final-pwa-repair.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  repair:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: pwa-final-repair
+          fetch-depth: 0
+
+      - name: Install image tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y imagemagick
+
+      - name: Rebuild and verify iPhone icon
+        run: |
+          cat icon_repair_chunks/chunk*.b64 | tr -d '\n\r ' | base64 -d > /tmp/icon180.png
+          echo 'ebe8dd788a7d09e2a0637bd72121d28ed5768b8ba694b700cbb4dd3fd9544044  /tmp/icon180.png' | sha256sum -c -
+          test "$(identify -format '%wx%h' /tmp/icon180.png)" = '180x180'
+          cp /tmp/icon180.png apple-touch-icon.png
+          cp /tmp/icon180.png icons/icon-180.png
+          convert /tmp/icon180.png -resize 192x192 -strip PNG24:icons/icon-192.png
+          convert /tmp/icon180.png -resize 512x512 -strip PNG24:icons/icon-512.png
+          test "$(identify -format '%wx%h' apple-touch-icon.png)" = '180x180'
+          test "$(identify -format '%wx%h' icons/icon-192.png)" = '192x192'
+          test "$(identify -format '%wx%h' icons/icon-512.png)" = '512x512'
+          identify apple-touch-icon.png icons/icon-192.png icons/icon-512.png
+
+      - name: Remove install guidance and patch PWA metadata
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json, re
+
+          p = Path('index.html')
+          s = p.read_text(encoding='utf-8')
+          card = '<div class="card install"><h2>iPhone 앱처럼 사용</h2><div class="muted">Safari에서 이 사이트를 연 뒤 <b>공유 → 홈 화면에 추가</b>를 선택하면 독립 앱처럼 실행할 수 있다.</div></div>'
+          s = s.replace(card, '')
+          s = re.sub(r'<link rel="apple-touch-icon"[^>]*>', '<link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png?v=20260908-final" />', s)
+          if 'iPhone 앱처럼 사용' in s or 'Safari에서 이 사이트를 연 뒤' in s:
+              raise SystemExit('install guidance text still present')
+          p.write_text(s, encoding='utf-8')
+
+          m = Path('manifest.webmanifest')
+          data = json.loads(m.read_text(encoding='utf-8'))
+          data['icons'] = [
+              {'src':'icons/icon-192.png','sizes':'192x192','type':'image/png'},
+              {'src':'icons/icon-512.png','sizes':'512x512','type':'image/png'}
+          ]
+          m.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          PY
+
+      - name: Replace service worker with fresh-navigation strategy
+        run: |
+          cat > sw.js <<'EOF'
+          const CACHE='artist-training-final-20260908';
+          const ASSETS=[
+            './index.html',
+            './manifest.webmanifest',
+            './progress-addon.css',
+            './progress-addon.js',
+            './apple-touch-icon.png',
+            './icons/icon-180.png',
+            './icons/icon-192.png',
+            './icons/icon-512.png'
+          ];
+
+          self.addEventListener('install', event => {
+            event.waitUntil(
+              caches.open(CACHE)
+                .then(cache => cache.addAll(ASSETS))
+                .then(() => self.skipWaiting())
+            );
+          });
+
+          self.addEventListener('activate', event => {
+            event.waitUntil(
+              Promise.all([
+                self.clients.claim(),
+                caches.keys().then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+              ])
+            );
+          });
+
+          self.addEventListener('fetch', event => {
+            if (event.request.mode === 'navigate') {
+              event.respondWith(
+                fetch(event.request, { cache: 'no-store' })
+                  .then(response => {
+                    const copy = response.clone();
+                    caches.open(CACHE).then(cache => cache.put('./index.html', copy));
+                    return response;
+                  })
+                  .catch(() => caches.match('./index.html'))
+              );
+              return;
+            }
+            event.respondWith(
+              caches.match(event.request).then(cached => cached || fetch(event.request))
+            );
+          });
+          EOF
+
+      - name: Final content checks
+        run: |
+          ! grep -q 'iPhone 앱처럼 사용' index.html
+          ! grep -q 'Safari에서 이 사이트를 연 뒤' index.html
+          grep -q 'apple-touch-icon.png?v=20260908-final' index.html
+          grep -q "artist-training-final-20260908" sw.js
+          identify apple-touch-icon.png icons/icon-192.png icons/icon-512.png
+
+      - name: Commit repaired files to test branch
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html manifest.webmanifest sw.js apple-touch-icon.png icons/icon-180.png icons/icon-192.png icons/icon-512.png
+          git commit -m 'Repair iPhone install UI and verified app icon' || exit 0
+          git push origin HEAD:pwa-final-repair
