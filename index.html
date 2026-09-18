@@ -65,7 +65,7 @@ function dayType(day,w){if(day===0)return 'rest';if(day===1||day===3)return 'lon
 function taskSet(type,w){const focus=weeklyFocus[w-1];const base={
  long:[['운동 + 샤워/식사','40–60분 · 몸을 깨운 뒤 작업 시작'],['크로키 / Gesture','30분 · 동세와 큰 흐름, 완성 금지'],['Composition Thumbnail','30분 · 5분 × 6안, Story → Camera → Value'],[w<=13?'Value / Notan Study':'주차 핵심 Skill Study','30분 · '+focus],['작품 분석','30분 · Story / Composition / Value / Focal / Edge'],['Deep Work · 실제 작품','3시간 전후 · '+data.targetName+' · 연습이 아니라 작품 진행'],['10분 Art Review','KEEP / PROBLEM / NEXT 기록']],
  short:[['운동 + 샤워/식사','40–60분'],['크로키 / Gesture','20–30분'],['Composition Thumbnail','30분 · 5분 × 6안'],['Master Study / Skill Study','45–60분 · '+focus],['짧은 이론 / 리뷰','15–20분 · 오늘 한 가지 판단 기준만 정리']],
- portfolio:[['Portfolio Deep Work','3시간 · '+data.targetName+' · 크로키/강의 없이 작품만'],['주간 Art Review','20–30분 · KEEP / PROBLEM / NEXT'],['다음 주 한 가지 목표 설정','10분 · 욕심내지 말고 가장 큰 약점 1개']],
+ portfolio:[['운동 + 샤워/식사','40–60분 · 몸을 깨운 뒤 작업 시작'],['Portfolio Deep Work','3시간 · '+data.targetName+' · 크로키/강의 없이 작품만'],['주간 Art Review','20–30분 · KEEP / PROBLEM / NEXT'],['다음 주 한 가지 목표 설정','10분 · 욕심내지 말고 가장 큰 약점 1개']],
  rest:[['완전 휴식','그림 공부를 하지 않아도 된다. 운동·산책·영화·게임·가족 시간.']]
  };return base[type]}
 function checkKey(date,idx){return date.toISOString().slice(0,10)+'_'+idx}
