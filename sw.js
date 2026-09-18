@@ -1,4 +1,4 @@
-const CACHE='artist-training-final-20260908-1';
+const CACHE='artist-training-final-20260918-2';
 const ASSETS=[
   './index.html',
   './manifest.webmanifest',
