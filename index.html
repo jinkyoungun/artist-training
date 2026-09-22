@@ -41,9 +41,11 @@
 </div></nav>
 <script>
 const STORAGE='proArtist52_v2';
-const defaults={startDate:'2026-09-14', longFridayOnOdd:true, checks:{}, notes:{}, targetName:'Black Naraka / Key Art'};
+const defaults={startDate:'2026-09-23', longFridayOnOdd:true, checks:{}, notes:{}, targetName:'Black Naraka / Key Art'};
 let data=Object.assign({},defaults,JSON.parse(localStorage.getItem(STORAGE)||'{}'));
 function save(){localStorage.setItem(STORAGE,JSON.stringify(data))}
+const START_RESET_KEY='art-training-start-reset-20260923';
+if(localStorage.getItem(START_RESET_KEY)!=='done'){data.startDate='2026-09-23';save();localStorage.setItem(START_RESET_KEY,'done')}
 const phases=[
  {from:1,to:13,title:'PHASE 1 · 눈과 판단 재정비',desc:'Composition · Value · Edge · Light. 잘 그리는 것보다 큰 덩어리와 시선 설계.',goal:'구도와 밸류를 빠르게 판단한다.'},
  {from:14,to:26,title:'PHASE 2 · 장면 설계',desc:'Story · Camera · Staging · Environment · Character interaction.',goal:'한 장 안에서 이야기와 카메라를 설계한다.'},
