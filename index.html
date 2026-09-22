@@ -79,7 +79,43 @@ function renderWeek(){const el=document.querySelector('#week'),w=currentWeek(),d
 function renderRoadmap(){const el=document.querySelector('#roadmap'),w=currentWeek();el.innerHTML=`<div class="hero"><div class="eyebrow">52 WEEK ROADMAP</div><h1>1년 성장 지도</h1><div class="muted">현재 ${w}주차 · 전체 체크 진행 ${overallCompletion()}%</div></div>${phases.map(p=>`<div class="phase"><b>${p.title}</b><p>${p.from}–${p.to}주 · ${p.desc}</p></div>`).join('')}<div class="card"><div class="week-grid">${Array.from({length:52},(_,i)=>i+1).map(n=>`<button class="week-btn ${n===w?'current':''} ${weekCompletion(n)>=80?'done':''}" data-w="${n}">${n}주<br><span class="tiny">${weekCompletion(n)}%</span></button>`).join('')}</div></div><div id="weekDetail"></div>`;el.querySelectorAll('.week-btn').forEach(b=>b.onclick=()=>renderWeekDetail(+b.dataset.w));renderWeekDetail(w)}
 function renderWeekDetail(w){const p=phaseFor(w);document.querySelector('#weekDetail').innerHTML=`<div class="card"><div class="row between"><h2>${w}주차 상세</h2><span class="pill accent">${weeklyFocus[w-1]}</span></div><div class="muted">${p.goal}</div><div class="focus"><b>월·수${isLongFriday(w)?'·금':''}</b><span>크로키 → 구도 → Skill → 분석 → 실제 작품 Deep Work</span></div><div class="focus"><b>화·목${!isLongFriday(w)?'·금':''}</b><span>짧은 Skill Day. 크로키 → 구도 → Master/Skill Study → 리뷰</span></div><div class="focus"><b>토</b><span>Portfolio Deep Work 3시간 + 주간 리뷰</span></div><div class="focus"><b>일</b><span>완전 휴식</span></div></div>`}
 function renderReview(){const el=document.querySelector('#review'),w=currentWeek();const n=data.notes[w]||{keep:'',problem:'',next:''};el.innerHTML=`<div class="hero"><div class="eyebrow">ART REVIEW</div><h1>${w}주차 기록</h1><div class="muted">반복되는 약점을 발견하는 것이 목적이다.</div></div><div class="card review"><h2>KEEP</h2><div class="muted">이번 주 계속 유지할 좋은 판단</div><textarea id="keep">${n.keep||''}</textarea><h2>PROBLEM</h2><div class="muted">가장 큰 문제 하나</div><textarea id="problem">${n.problem||''}</textarea><h2>NEXT</h2><div class="muted">다음 주 가장 먼저 고칠 것 하나</div><textarea id="next">${n.next||''}</textarea><button class="btn" id="saveReview">기록 저장</button></div>`;el.querySelector('#saveReview').onclick=()=>{data.notes[w]={keep:el.querySelector('#keep').value,problem:el.querySelector('#problem').value,next:el.querySelector('#next').value};save();alert('저장했어.')}}
-function renderSettings(){const el=document.querySelector('#settings');el.innerHTML=`<div class="hero"><div class="eyebrow">SETTINGS</div><h1>훈련 설정</h1><div class="muted">시작일과 금요일 교대 패턴을 바꿀 수 있다.</div></div><div class="card settings"><label>52주 시작일</label><input id="startDate" type="date" value="${data.startDate}"><label>1주차 금요일</label><select id="friday"><option value="odd" ${data.longFridayOnOdd?'selected':''}>Long Training Day</option><option value="even" ${!data.longFridayOnOdd?'selected':''}>Short Skill Day</option></select><label>실제 작품 / 프로젝트 이름</label><input id="target" value="${data.targetName}"><div style="height:14px"></div><button class="btn" id="saveSet">설정 저장</button> <button class="btn ghost" id="backup">기록 백업</button></div><div class="card"><h2>근무 기준</h2><div class="muted">월·수 17:00–23:00 → Long Day<br>화·목 13:00–21:00 → Short Day<br>금요일 → 격주 자동 전환<br>토 → Portfolio Day<br>일 → Rest Day</div></div><div class="card"><h2>주의</h2><div class="muted">밤 11시 이후 추가 그림 공부를 넣지 않는다. 운동과 회복을 줄여 작업시간을 억지로 늘리지 않는다.</div></div>`;el.querySelector('#saveSet').onclick=()=>{data.startDate=el.querySelector('#startDate').value;data.longFridayOnOdd=el.querySelector('#friday').value==='odd';data.targetName=el.querySelector('#target').value.trim()||defaults.targetName;save();renderAll();alert('설정을 저장했어.')};el.querySelector('#backup').onclick=()=>{const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='artist-training-backup.json';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000)}}
+function isArtTrainingKey(key){return key===STORAGE||key.startsWith('proArtist52_')||key.startsWith('art-training')||key.startsWith('artist-training')}
+function backupFileName(){const d=new Date(),p=n=>String(n).padStart(2,'0');return `art-training-backup-${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}.json`}
+async function saveBackup(){
+ const keys={};
+ for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&isArtTrainingKey(k))keys[k]=localStorage.getItem(k)}
+ if(!(STORAGE in keys))keys[STORAGE]=localStorage.getItem(STORAGE)||JSON.stringify(data);
+ const payload={app:'art-training',version:1,createdAt:new Date().toISOString(),keys};
+ const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+ const file=new File([blob],backupFileName(),{type:'application/json'});
+ try{
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){await navigator.share({files:[file],title:'Artist Training 기록 백업'});return}
+ }catch(err){if(err&&err.name==='AbortError')return}
+ const a=document.createElement('a');const url=URL.createObjectURL(blob);a.href=url;a.download=file.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500);
+}
+async function restoreBackupFile(file){
+ if(!file)return;
+ let payload;
+ try{payload=JSON.parse(await file.text())}catch(e){alert('올바른 JSON 백업 파일이 아니야.');return}
+ if(!payload||payload.app!=='art-training'){alert('이 파일은 Artist Training 앱의 백업 파일이 아니야.');return}
+ if(payload.version!==1||!payload.keys||typeof payload.keys!=='object'){alert('지원하지 않는 백업 형식이야.');return}
+ const validEntries=Object.entries(payload.keys).filter(([k,v])=>isArtTrainingKey(k)&&typeof v==='string');
+ if(!validEntries.some(([k])=>k===STORAGE)){alert('현재 Artist Training 기록이 포함되지 않은 백업 파일이야.');return}
+ const when=payload.createdAt?new Date(payload.createdAt).toLocaleString():'날짜 정보 없음';
+ if(!confirm(`백업 기록을 불러올까?\n\n백업 생성: ${when}\n현재 같은 항목의 기록은 백업 내용으로 덮어써져.`))return;
+ try{
+  validEntries.forEach(([k,v])=>localStorage.setItem(k,v));
+  alert('백업 기록을 복원했어. 앱을 다시 불러올게.');
+  location.reload();
+ }catch(e){alert('복원 중 오류가 발생했어. 저장 공간을 확인해줘.')}
+}
+function renderSettings(){const el=document.querySelector('#settings');el.innerHTML=`<div class="hero"><div class="eyebrow">SETTINGS</div><h1>훈련 설정</h1><div class="muted">시작일과 금요일 교대 패턴을 바꿀 수 있다.</div></div><div class="card settings"><label>52주 시작일</label><input id="startDate" type="date" value="${data.startDate}"><label>1주차 금요일</label><select id="friday"><option value="odd" ${data.longFridayOnOdd?'selected':''}>Long Training Day</option><option value="even" ${!data.longFridayOnOdd?'selected':''}>Short Skill Day</option></select><label>실제 작품 / 프로젝트 이름</label><input id="target" value="${data.targetName}"><div style="height:14px"></div><button class="btn" id="saveSet">설정 저장</button></div><div class="card"><h2>기록 백업 및 복원</h2><div class="muted">학습 기록을 JSON 파일로 저장해 두면 앱을 다시 설치하거나 수정한 뒤에도 복원할 수 있다. iPhone에서는 백업 저장 후 공유 화면에서 Google Drive 또는 파일 앱을 선택할 수 있다.</div><div style="height:14px"></div><button class="btn" id="backupSave">백업 저장</button> <button class="btn ghost" id="backupLoad">백업 불러오기</button><input id="backupFile" type="file" accept=".json,application/json" style="display:none"></div><div class="card"><h2>근무 기준</h2><div class="muted">월·수 17:00–23:00 → Long Day<br>화·목 13:00–21:00 → Short Day<br>금요일 → 격주 자동 전환<br>토 → Portfolio Day<br>일 → Rest Day</div></div><div class="card"><h2>주의</h2><div class="muted">밤 11시 이후 추가 그림 공부를 넣지 않는다. 운동과 회복을 줄여 작업시간을 억지로 늘리지 않는다.</div></div>`;
+ el.querySelector('#saveSet').onclick=()=>{data.startDate=el.querySelector('#startDate').value;data.longFridayOnOdd=el.querySelector('#friday').value==='odd';data.targetName=el.querySelector('#target').value.trim()||defaults.targetName;save();renderAll();alert('설정을 저장했어.')};
+ el.querySelector('#backupSave').onclick=()=>saveBackup();
+ const input=el.querySelector('#backupFile');
+ el.querySelector('#backupLoad').onclick=()=>{input.value='';input.click()};
+ input.onchange=()=>restoreBackupFile(input.files&&input.files[0]);
+}
 function renderAll(){renderToday();renderWeek();renderRoadmap();renderReview();renderSettings()}
 document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));t.classList.add('active');document.querySelector('#'+t.dataset.view).classList.add('active');window.scrollTo(0,0)});
 if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
