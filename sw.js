@@ -1,4 +1,4 @@
-const CACHE='artist-training-final-20260922-backup1';
+const CACHE='artist-training-final-20260922-backup-startreset1';
 const ASSETS=[
   './index.html',
   './manifest.webmanifest',
